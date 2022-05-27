@@ -1,12 +1,17 @@
-module github.com/yahoojapan/authorization-proxy
+module github.com/yahoojapan/authorization-proxy/v4
 
-go 1.12
+go 1.16
 
 require (
-	github.com/kpango/glg v1.4.1
-	github.com/mwitkow/grpc-proxy v0.0.0-20181017164139-0f1106ef9c76
-	github.com/pkg/errors v0.8.1
-	github.com/yahoojapan/athenz-authorizer v0.0.0-20190508014224-3a165b0a360f
-	google.golang.org/grpc v1.20.1
-	gopkg.in/yaml.v2 v2.2.2
+	github.com/kpango/glg v1.6.10
+	github.com/mwitkow/grpc-proxy v0.0.0-20220126150247-db34e7bfee32
+	github.com/pkg/errors v0.9.1
+	github.com/yahoojapan/athenz-authorizer/v5 v5.3.2
+	golang.org/x/sync v0.0.0-20220513210516-0976fa681c29
+	google.golang.org/grpc v1.46.2
+	gopkg.in/yaml.v2 v2.4.0
 )
+
+replace golang.org/x/text v0.3.0 => golang.org/x/text v0.3.3
+
+replace golang.org/x/text v0.3.2 => golang.org/x/text v0.3.3

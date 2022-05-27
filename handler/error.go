@@ -13,17 +13,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package handler
 
-// RFC7807Error represent the error message fulfilling RFC7807 standard.
+// RFC7807Error represents the error message fulfilling RFC7807 standard.
 type RFC7807Error struct {
 	Type          string `json:"type"`
 	Title         string `json:"title"`
 	Status        int
-	InvalidParams []InvalidParam `json:"invalid-params,ommitempty"`
+	InvalidParams []InvalidParam `json:"invalid-params,omitempty"`
 	Detail        string         `json:"detail"`
 	Instance      string         `json:"instance"`
-	RoleToken     string         `json:"role_tolen"`
+	RoleToken     string         `json:"role_token"`
 }
 
 // InvalidParam represents the invalid parameters requested by the user.
@@ -33,15 +34,15 @@ type InvalidParam struct {
 }
 
 const (
-	// ProblemJSONContentType represent the media type of the error response
+	// ProblemJSONContentType represents the media type of the error response
 	ProblemJSONContentType = "application/problem+json"
 
 	// HTTPStatusClientClosedRequest represents a non-standard status code meaning that the client closed the connection before the server answered the request
 	HTTPStatusClientClosedRequest = 499
 
-	// ErrMsgVerifyRoleToken "VerifyRoleToken returned error in RoundTrip"
-	ErrMsgVerifyRoleToken = "VerifyRoleToken returned error in RoundTrip"
-
 	// ErrRPCMetadataNotFound "gRPC metadata not found"
 	ErrRPCMetadataNotFound = "gRPC metadata not found"
+
+	// ErrMsgUnverified "unauthenticated/unauthorized"
+	ErrMsgUnverified = "unauthenticated/unauthorized"
 )

@@ -19,8 +19,8 @@ import (
 	"context"
 
 	"github.com/mwitkow/grpc-proxy/proxy"
-	"github.com/yahoojapan/authorization-proxy/config"
-	"github.com/yahoojapan/authorization-proxy/service"
+	"github.com/yahoojapan/authorization-proxy/v4/config"
+	"github.com/yahoojapan/authorization-proxy/v4/service"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"

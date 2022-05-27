@@ -13,11 +13,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package service
 
-import authorizerd "github.com/yahoojapan/athenz-authorizerd"
+/*
+Package service manages the main logic of Authorization Proxy.
+It contains a token updater to periodically update the N-token for communicating with Athenz,
+and policy updater to periodically update Athenz policy,
+and athenz config updater to periodically updater Athenz Data.
+*/
 
-// Authorizationd represents the authorization daemon to do the authorization check.
-type Authorizationd interface {
-	authorizerd.Authorizerd
-}
+// Package router provides the router and API routes implementations.
+package router

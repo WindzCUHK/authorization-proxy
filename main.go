@@ -13,6 +13,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 package main
 
 import (
@@ -27,9 +28,12 @@ import (
 
 	"github.com/kpango/glg"
 	"github.com/pkg/errors"
-	"github.com/yahoojapan/authorization-proxy/config"
-	"github.com/yahoojapan/authorization-proxy/usecase"
+	"github.com/yahoojapan/authorization-proxy/v4/config"
+	"github.com/yahoojapan/authorization-proxy/v4/usecase"
 )
+
+// Version is set by the build command via LDFLAGS
+var Version string
 
 // params is the data model for Authorization Proxy command line arguments.
 type params struct {
@@ -60,22 +64,49 @@ func parseParams() (*params, error) {
 
 // run starts the daemon and listens for OS signal.
 func run(cfg config.Config) []error {
+	g := glg.Get().SetMode(glg.NONE)
 
-	g := glg.Get().
-		SetLevelMode(glg.LOG, glg.NONE).
-		SetLevelMode(glg.PRINT, glg.NONE).
-		SetLevelMode(glg.DEBG, glg.NONE)
+	switch cfg.Log.Level {
+	case "":
+		// disable logging
+	case "fatal":
+		g = g.SetLevelMode(glg.FATAL, glg.STD)
+	case "error":
+		g = g.SetLevelMode(glg.FATAL, glg.STD).
+			SetLevelMode(glg.ERR, glg.STD)
+	case "warn":
+		g = g.SetLevelMode(glg.FATAL, glg.STD).
+			SetLevelMode(glg.ERR, glg.STD).
+			SetLevelMode(glg.WARN, glg.STD)
+	case "info":
+		g = g.SetLevelMode(glg.FATAL, glg.STD).
+			SetLevelMode(glg.ERR, glg.STD).
+			SetLevelMode(glg.WARN, glg.STD).
+			SetLevelMode(glg.INFO, glg.STD)
+	case "debug":
+		g = g.SetLevelMode(glg.FATAL, glg.STD).
+			SetLevelMode(glg.ERR, glg.STD).
+			SetLevelMode(glg.WARN, glg.STD).
+			SetLevelMode(glg.INFO, glg.STD).
+			SetLevelMode(glg.DEBG, glg.STD)
+	default:
+		return []error{errors.New("invalid log level")}
+	}
 
-	if cfg.Debug {
-		g.SetLevelMode(glg.DEBG, glg.STD)
+	if !cfg.Log.Color {
+		g.DisableColor()
+	}
+
+	daemon, err := usecase.New(cfg)
+	if err != nil {
+		return []error{errors.Wrap(err, "usecase returned error")}
 	}
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	daemon, err := usecase.New(cfg)
-	if err != nil {
-		return []error{errors.Wrap(err, "usecase returned error")}
+	if err = daemon.Init(ctx); err != nil {
+		return []error{errors.Wrap(err, "daemon init error")}
 	}
 
 	ech := daemon.Start(ctx)
@@ -92,7 +123,7 @@ func run(cfg config.Config) []error {
 		select {
 		case <-sigCh:
 			cancel()
-			glg.Warn("authorization-proxy server shutdown...")
+			glg.Warn("Got authorization-proxy server shutdown signal...")
 		case errs := <-ech:
 			return errs
 		}
@@ -116,7 +147,8 @@ func main() {
 	}
 
 	if p.showVersion {
-		glg.Infof("authorization-proxy version -> %s", config.GetVersion())
+		glg.Infof("authorization-proxy version -> %s", getVersion())
+		glg.Infof("authorization-proxy config version -> %s", config.GetVersion())
 		return
 	}
 
@@ -133,7 +165,7 @@ func main() {
 	}
 
 	errs := run(*cfg)
-	if errs != nil && len(errs) > 0 {
+	if len(errs) > 0 {
 		var emsg string
 		for _, err = range errs {
 			emsg += "\n" + err.Error()
@@ -141,4 +173,11 @@ func main() {
 		glg.Fatal(emsg)
 		return
 	}
+}
+
+func getVersion() string {
+	if Version == "" {
+		return "development version"
+	}
+	return Version
 }

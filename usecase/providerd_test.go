@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/yahoojapan/authorization-proxy/config"
-	"github.com/yahoojapan/authorization-proxy/service"
+	"github.com/yahoojapan/authorization-proxy/v4/config"
+	"github.com/yahoojapan/authorization-proxy/v4/service"
 )
 
 func TestNew(t *testing.T) {
@@ -33,11 +33,11 @@ func TestNew(t *testing.T) {
 						PubKeySysAuthDomain:   "dummy.sys.auth",
 						PubKeyEtagExpTime:     "10s",
 						PubKeyEtagFlushDur:    "10s",
-						AthenzDomains:             []string{"dummyDom1", "dummyDom2"},
-						PolicyExpireMargin:        "10s",
-						PolicyRefreshDuration:     "10s",
-						PolicyEtagExpTime:         "10s",
-						PolicyEtagFlushDur:        "10s",
+						AthenzDomains:         []string{"dummyDom1", "dummyDom2"},
+						PolicyExpireMargin:    "10s",
+						PolicyRefreshDuration: "10s",
+						PolicyEtagExpTime:     "10s",
+						PolicyEtagFlushDur:    "10s",
 					},
 					Server: config.Server{
 						HealthzPath: "/dummy",
@@ -266,11 +266,11 @@ func Test_newAuthorizationd(t *testing.T) {
 						PubKeySysAuthDomain:   "dummy.sys.auth",
 						PubKeyEtagExpTime:     "10s",
 						PubKeyEtagFlushDur:    "10s",
-						AthenzDomains:             []string{"dummyDom1", "dummyDom2"},
-						PolicyExpireMargin:        "10s",
-						PolicyRefreshDuration:     "10s",
-						PolicyEtagExpTime:         "10s",
-						PolicyEtagFlushDur:        "10s",
+						AthenzDomains:         []string{"dummyDom1", "dummyDom2"},
+						PolicyExpireMargin:    "10s",
+						PolicyRefreshDuration: "10s",
+						PolicyEtagExpTime:     "10s",
+						PolicyEtagFlushDur:    "10s",
 					},
 				},
 			},

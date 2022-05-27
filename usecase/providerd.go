@@ -21,12 +21,12 @@ import (
 	"github.com/kpango/glg"
 	"github.com/pkg/errors"
 
-	"github.com/yahoojapan/authorization-proxy/config"
-	"github.com/yahoojapan/authorization-proxy/handler"
-	"github.com/yahoojapan/authorization-proxy/infra"
-	"github.com/yahoojapan/authorization-proxy/service"
+	"github.com/yahoojapan/authorization-proxy/v4/config"
+	"github.com/yahoojapan/authorization-proxy/v4/handler"
+	"github.com/yahoojapan/authorization-proxy/v4/infra"
+	"github.com/yahoojapan/authorization-proxy/v4/service"
 
-	authorizerd "github.com/yahoojapan/athenz-authorizer"
+	authorizerd "github.com/yahoojapan/athenz-authorizer/v5"
 )
 
 // AuthorizationDaemon represents Authorization Proxy daemon behavior.

@@ -21,6 +21,9 @@ import (
 	"os"
 	"reflect"
 	"testing"
+	"time"
+
+	authorizerd "github.com/yahoojapan/athenz-authorizer/v5"
 
 	"github.com/kpango/glg"
 )
@@ -41,7 +44,7 @@ func TestNew(t *testing.T) {
 		{
 			name: "Test file content not valid",
 			args: args{
-				path: "./testdata/not_valid_config.yaml",
+				path: "../test/data/not_valid_config.yaml",
 			},
 			wantErr: fmt.Errorf("decode file failed: yaml: line 11: could not find expected ':'"),
 		},
@@ -72,49 +75,128 @@ func TestNew(t *testing.T) {
 		{
 			name: "Test file content valid",
 			args: args{
-				path: "./testdata/example_config.yaml",
+				path: "../test/data/example_config.yaml",
 			},
 			want: &Config{
-				Version: "v1.0.0",
-				Debug:   false,
+				Version: "v2.0.0",
 				Server: Server{
-					Port:             8082,
-					HealthzPort:      6082,
-					HealthzPath:      "/healthz",
-					Timeout:          "10s",
-					ShutdownDuration: "5s",
-					ProbeWaitTime:    "3s",
+					Port:            8082,
+					Timeout:         "10s",
+					ShutdownTimeout: "10s",
+					ShutdownDelay:   "9s",
 					TLS: TLS{
-						Enabled: false,
-						Cert:    "/etc/athenz/provider/keys/server.crt",
-						Key:     "/etc/athenz/provider/keys/private.key",
-						CA:      "/etc/athenz/provider/keys/ca.crt",
+						Enable:   true,
+						CertPath: "test/data/dummyServer.crt",
+						KeyPath:  "test/data/dummyServer.key",
+						CAPath:   "test/data/dummyCa.pem",
+					},
+					HealthCheck: HealthCheck{
+						Port:     6082,
+						Endpoint: "/healthz",
+					},
+					Debug: Debug{
+						Enable:    false,
+						Port:      6083,
+						Dump:      true,
+						Profiling: true,
 					},
 				},
 				Athenz: Athenz{
-					URL:          "https://www.athenz.com:4443/zts/v1",
-					Timeout:      "30s",
-					AthenzRootCA: "",
+					URL:     "https://athenz.io:4443/zts/v1",
+					Timeout: "30s",
+					CAPath:  "_athenz_root_ca_",
 				},
 				Proxy: Proxy{
-					Scheme:     "http",
-					Host:       "localhost",
-					Port:       80,
-					RoleHeader: "Athenz-Role-Auth",
-					BufferSize: 4096,
+					HTTP: HTTP{
+						Scheme:                 "http",
+						Host:                   "localhost",
+						Port:                   80,
+						BufferSize:             4096,
+						OriginHealthCheckPaths: []string{},
+						PreserveHost:           true,
+						Transport: Transport{
+							TLSHandshakeTimeout:    10 * time.Second,
+							DisableKeepAlives:      false,
+							DisableCompression:     false,
+							MaxIdleConns:           100,
+							MaxIdleConnsPerHost:    0,
+							MaxConnsPerHost:        0,
+							IdleConnTimeout:        90 * time.Second,
+							ResponseHeaderTimeout:  time.Duration(0),
+							ExpectContinueTimeout:  1 * time.Second,
+							MaxResponseHeaderBytes: 0,
+							WriteBufferSize:        0,
+							ReadBufferSize:         0,
+							ForceAttemptHTTP2:      true,
+						},
+					},
 				},
 				Authorization: Authorization{
-					PubKeyRefreshDuration: "24h",
-					PubKeySysAuthDomain:   "sys.auth",
-					PubKeyEtagExpTime:     "168h",
-					PubKeyEtagFlushDur:    "84h",
-					AthenzDomains: []string{
-						"domain1",
+					PublicKey: PublicKey{
+						SysAuthDomain:   "sys.auth",
+						RefreshPeriod:   "24h",
+						ETagExpiry:      "168h",
+						ETagPurgePeriod: "84h",
 					},
-					PolicyExpireMargin:    "48h",
-					PolicyRefreshDuration: "1h",
-					PolicyEtagExpTime:     "48h",
-					PolicyEtagFlushDur:    "24h",
+					AthenzDomains: []string{
+						"provider-domain1",
+						"provider-domain2",
+					},
+					Policy: Policy{
+						ExpiryMargin:  "48h",
+						RefreshPeriod: "1h",
+						PurgePeriod:   "24h",
+						RetryDelay:    "",
+						RetryAttempts: 0,
+						MappingRules: map[string][]authorizerd.Rule{
+							"domain1": {
+								authorizerd.Rule{
+									Method:   "get",
+									Path:     "/path1/{path2}",
+									Action:   "action",
+									Resource: "path1.{path2}",
+								},
+								authorizerd.Rule{
+									Method:   "get",
+									Path:     "/path?param={value}",
+									Action:   "action",
+									Resource: "path.{value}",
+								},
+							},
+							"domain2": {
+								authorizerd.Rule{
+									Method:   "get",
+									Path:     "/path1/{path2}?param={value}",
+									Action:   "action",
+									Resource: "{path2}.{value}",
+								},
+							},
+						},
+					},
+					JWK: JWK{
+						RefreshPeriod: "",
+						RetryDelay:    "",
+						URLs:          []string{"http://your-jwk-set-url1", "https://your-jwk-set-url2"},
+					},
+					AccessToken: AccessToken{
+						Enable:               true,
+						VerifyCertThumbprint: true,
+						VerifyClientID:       true,
+						AuthorizedClientIDs: map[string][]string{
+							"common_name1": {"client_id1", "client_id2"},
+							"common_name2": {"client_id1", "client_id2"},
+						},
+						CertBackdateDuration: "1h",
+						CertOffsetDuration:   "1h",
+					},
+					RoleToken: RoleToken{
+						Enable:         true,
+						RoleAuthHeader: "Athenz-Role-Auth",
+					},
+				},
+				Log: Log{
+					Level: "debug",
+					Color: true,
 				},
 			},
 		},
@@ -122,15 +204,13 @@ func TestNew(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.beforeFunc != nil {
-				err := tt.beforeFunc()
-				if err != nil {
+				if err := tt.beforeFunc(); err != nil {
 					t.Error(err)
 				}
 			}
 			if tt.afterFunc != nil {
 				defer func() {
-					err := tt.afterFunc()
-					if err != nil {
+					if err := tt.afterFunc(); err != nil {
 						t.Error(err)
 					}
 				}()
@@ -168,7 +248,7 @@ func TestGetVersion(t *testing.T) {
 	}{
 		{
 			name: "Test get version return sidecar version",
-			want: "v1.0.0",
+			want: "v2.0.0",
 		},
 	}
 	for _, tt := range tests {
@@ -215,15 +295,13 @@ func TestGetActualValue(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.beforeFunc != nil {
-				err := tt.beforeFunc()
-				if err != nil {
+				if err := tt.beforeFunc(); err != nil {
 					t.Error(err)
 				}
 			}
 			if tt.afterFunc != nil {
 				defer func() {
-					err := tt.afterFunc()
-					if err != nil {
+					if err := tt.afterFunc(); err != nil {
 						t.Error(err)
 					}
 				}()
