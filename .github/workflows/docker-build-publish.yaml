@@ -68,7 +68,6 @@ jobs:
           [[ "${{ env.DELETE_UNTAGGED_IMAGES_TOKEN }}" = "" ]] && echo "DELETE_UNTAGGED_IMAGES_TOKEN=${{ env.DOCKER_REGISTRY_TOKEN }}" >> $GITHUB_ENV
           [[ "${{ env.DELETE_UNTAGGED_IMAGES_PER_PAGE }}" = "" ]] && echo "DELETE_UNTAGGED_IMAGES_PER_PAGE=100" >> $GITHUB_ENV
 
-      
       # This action checks-out your repository under $GITHUB_WORKSPACE, so your workflow can access it.
       # https://github.com/actions/checkout
       -
@@ -100,37 +99,6 @@ jobs:
           rm -rf example
           go test -v -race -covermode=atomic -coverprofile=coverage.out ./...
           go tool cover -html=coverage.out -o coverage.html
-      # Extract metadata (tags, labels) for Docker
-      # https://github.com/docker/metadata-action
-
-      # The Github action runs CIS Dockerfile benchmark against dockerfiles in repository (CIS 4.1, 4.2, 4.3, 4.6, 4.7, 4.9, 4.10)
-      # https://github.com/sysdiglabs/benchmark-dockerfile
-      -
-        name: Sysdig Benchmark Dockerfile
-        id: sysdig
-        # You may pin to the exact commit or the version.
-        # uses: https://github.com/sysdiglabs/benchmark-dockerfile/tags
-        uses: sysdiglabs/benchmark-dockerfile@v1.0.0
-        with:
-          # Directory of dockerfiles (default "./")
-          directory: "./"
-          # list of disallowed packages separated by comma (default ")
-          #disallowedPackages: ''
-          # list of trusted base images separated by comma (default "", meaning trust any base image)
-          trustedBaseImages: ""
-
-      # The Github action runs CIS Dockerfile benchmark against dockerfiles in repository (CIS 4.1, 4.2, 4.3, 4.6, 4.7, 4.9, 4.10)
-      # https://github.com/sysdiglabs/benchmark-dockerfile
-      -
-        name: Post Sysdig Benchmark Dockerfile
-        id: postsysdig
-        run: |
-          echo ${{ toJSON(steps.sysdig.outputs.violation_report) }} | \
-            jq -r .
-          echo ${{ toJSON(steps.sysdig.outputs.violation_report) }} | \
-            jq -r .cis_docker_benchmark_violation_report[].violations[] | \
-            wc -l | \
-            xargs -I% test 0 -eq %
 
       # The Github action runs CIS Dockerfile benchmark against dockerfiles in repository (CIS 4.1, 4.2, 4.3, 4.6, 4.7, 4.9, 4.10)
       # https://github.com/sysdiglabs/benchmark-dockerfile
