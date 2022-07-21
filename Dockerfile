@@ -5,7 +5,7 @@ RUN set -eux \
     && apk --no-cache add ca-certificates \
     && apk --no-cache add --virtual build-dependencies cmake g++ make unzip curl upx git
 
-WORKDIR ${GOPATH}/src/github.com/yahoojapan/authorization-proxy
+WORKDIR ${GOPATH}/src/github.com/AthenZ/authorization-proxy
 
 COPY go.mod .
 COPY go.sum .
