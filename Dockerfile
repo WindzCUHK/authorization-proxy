@@ -38,7 +38,7 @@ RUN apk del build-dependencies --purge \
 # Start From Scratch For Running Environment
 FROM scratch
 # FROM alpine:latest
-LABEL maintainer "kpango <i.can.feel.gravity@gmail.com>"
+LABEL maintainer "cncf-athenz-maintainers@lists.cncf.io"
 
 ENV APP_NAME authorization-proxy
 
