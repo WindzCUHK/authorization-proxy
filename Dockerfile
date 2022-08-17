@@ -1,11 +1,10 @@
-FROM golang:1.16-alpine AS base
+FROM golang:1.18-alpine AS base
 
 RUN set -eux \
-    && apk update \
     && apk --no-cache add ca-certificates \
     && apk --no-cache add --virtual build-dependencies cmake g++ make unzip curl upx git
 
-WORKDIR ${GOPATH}/src/github.com/yahoojapan/authorization-proxy
+WORKDIR ${GOPATH}/src/github.com/AthenZ/authorization-proxy
 
 COPY go.mod .
 COPY go.sum .
@@ -18,6 +17,8 @@ ENV APP_NAME authorization-proxy
 ARG APP_VERSION='development version'
 
 COPY . .
+
+RUN adduser -H -S ${APP_NAME}
 
 RUN BUILD_TIME=$(date -u +%Y%m%d-%H%M%S) \
     && GO_VERSION=$(go version | cut -d" " -f3,4) \
@@ -47,5 +48,9 @@ COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
 # Copy our static executable
 COPY --from=builder /usr/bin/${APP_NAME} /go/bin/${APP_NAME}
+# Copy user
+COPY --from=builder /etc/passwd /etc/passwd
+USER ${APP_NAME}
 
+HEALTHCHECK NONE
 ENTRYPOINT ["/go/bin/authorization-proxy"]
